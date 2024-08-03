@@ -18,7 +18,7 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <AppOutputBase>$(MSBuildProjectDirectory)\</AppOutputBase>
-        <PathMap>$(AppOutputBase)=C:\ffxiv\repo\FPSPlugin\FPSPlugin</PathMap>
+        <PathMap>$(AppOutputBase)=C:\ffxiv\repo\FPSPluginFork\FPSPluginFork</PathMap>
         <Deterministic>true</Deterministic>
     </PropertyGroup>
     <PropertyGroup>

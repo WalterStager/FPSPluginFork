@@ -11,8 +11,8 @@ using Dalamud.Game.Gui.Dtr;
 using Dalamud.IoC;
 using Dalamud.Plugin.Services;
 
-namespace FPSPlugin {
-    public class FPSPlugin : IDalamudPlugin {
+namespace FPSPluginFork {
+    public class FPSPluginFork : IDalamudPlugin {
         public string Name => "FPS Plugin";
         public FPSPluginConfig PluginConfig { get; private set; }
 
@@ -46,7 +46,7 @@ namespace FPSPlugin {
             RemoveCommands();
         }
 
-        public FPSPlugin() {
+        public FPSPluginFork() {
             this.PluginConfig = (FPSPluginConfig) PluginInterface.GetPluginConfig() ?? new FPSPluginConfig();
             this.PluginConfig.Init(this);
             fpsText = string.Empty;

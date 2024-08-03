@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Reflection;
 
-namespace FPSPlugin {
+namespace FPSPluginFork {
 
     public enum FPSPluginFont {
         [Description("Dalamud Default")]
@@ -28,7 +28,7 @@ namespace FPSPlugin {
     
     
     public class FPSPluginConfig : IPluginConfiguration {
-        [NonSerialized] private FPSPlugin plugin;
+        [NonSerialized] private FPSPluginFork plugin;
         [NonSerialized] public long FontChangeTime = DateTime.Now.Ticks;
         [NonSerialized] public string TestText = string.Empty;
 
@@ -65,12 +65,12 @@ namespace FPSPlugin {
             }
         }
 
-        public void Init(FPSPlugin plugin) {
+        public void Init(FPSPluginFork plugin) {
             this.plugin = plugin;
         }
 
         public void Save() {
-            FPSPlugin.PluginInterface.SavePluginConfig(this);
+            FPSPluginFork.PluginInterface.SavePluginConfig(this);
         }
 
         public bool DrawConfigUI() {
