@@ -31,16 +31,16 @@ namespace FPSPlugin {
 
         [PluginService] public static  ICommandManager CommandManager { get; private set; } = null!;
         [PluginService] public static  IFramework Framework { get; private set; } = null!;
-        [PluginService] public static DalamudPluginInterface PluginInterface { get; private set; } = null!;
+        [PluginService] public static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
         [PluginService] public static IDtrBar DtrBar { get; private set; } = null!;
         [PluginService] public static IPluginLog PluginLog { get; private set; } = null!;
 
         public void Dispose() {
             PluginInterface.UiBuilder.Draw -= this.BuildUI;
-            PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
+            // PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
             PluginInterface.UiBuilder.OpenConfigUi -= this.OpenConfigUi;
             Framework.Update -= this.OnFrameworkUpdate;
-            PluginInterface.UiBuilder.RebuildFonts();
+            // PluginInterface.UiBuilder.RebuildFonts();
             fpsHistoryInterval?.Stop();
             dtrEntry?.Dispose();
             RemoveCommands();
@@ -58,7 +58,9 @@ namespace FPSPlugin {
             PluginInterface.UiBuilder.Draw += this.BuildUI;
             PluginInterface.UiBuilder.OpenConfigUi += this.OpenConfigUi;
             Framework.Update += OnFrameworkUpdate;
-            PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
+            // PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
+
+            BuildFont();
         }
 
         private string FormatFpsValue(float value) {
@@ -72,7 +74,10 @@ namespace FPSPlugin {
             try {
                 if (!(fontBuilt || fontLoadFailed)) return;
                 if (PluginConfig.UseDtr && fpsText != null) {
-                    dtrEntry ??= DtrBar.Get("FPS Display");
+                    DtrBarEntry retrievedEntry = DtrBar.Get("FPS Display") as DtrBarEntry;
+                    if (retrievedEntry != null) {
+                        dtrEntry = retrievedEntry;
+                    }
                     dtrEntry.Shown = PluginConfig.Enable;
                     dtrEntry.Text = fpsText;
                     dtrEntry.OnClick = PluginConfig.DtrOpenSettings ? OpenConfigUi : null;
@@ -199,27 +204,27 @@ namespace FPSPlugin {
             }
         }
 
-        internal void ReloadFont() {
-            PluginInterface.UiBuilder.RebuildFonts();
-        }
+        // internal void ReloadFont() {
+        //     PluginInterface.UiBuilder.RebuildFonts();
+        // }
         
         private void BuildUI() {
 
-            if (!fontBuilt && !fontLoadFailed) {
-                PluginInterface.UiBuilder.RebuildFonts();
-                return;
-            }
+            // if (!fontBuilt && !fontLoadFailed) {
+            //     PluginInterface.UiBuilder.RebuildFonts();
+            //     return;
+            // }
 
             drawConfigWindow = drawConfigWindow && PluginConfig.DrawConfigUI();
 
-            if (PluginConfig.FontChangeTime > 0) {
-                if (DateTime.Now.Ticks - 10000000 > PluginConfig.FontChangeTime) {
-                    PluginConfig.FontChangeTime = 0;
-                    fontLoadFailed = false;
-                    windowSize = Vector2.Zero;
-                    ReloadFont();
-                }
-            }
+            // if (PluginConfig.FontChangeTime > 0) {
+            //     if (DateTime.Now.Ticks - 10000000 > PluginConfig.FontChangeTime) {
+            //         PluginConfig.FontChangeTime = 0;
+            //         fontLoadFailed = false;
+            //         windowSize = Vector2.Zero;
+            //         // ReloadFont();
+            //     }
+            // }
 
             if (!PluginConfig.Enable || PluginConfig.UseDtr || string.IsNullOrEmpty(fpsText)) return;
 

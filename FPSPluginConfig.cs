@@ -119,10 +119,10 @@ namespace FPSPlugin {
                     FontChangeTime = DateTime.Now.Ticks;
                     changed = true;
                 }
-                ImGui.SameLine();
-                if (ImGui.SmallButton("Reload Font")) {
-                    plugin.ReloadFont();
-                }
+                // ImGui.SameLine();
+                // if (ImGui.SmallButton("Reload Font")) {
+                //     plugin.ReloadFont();
+                // }
                 changed |= ImGui.ColorEdit4("Text Colour##fpsPluginColorSetting", ref Colour);
 
                 changed |= ImGui.SliderFloat("Corner Rounding###fpsPluginCornerRounding", ref WindowCornerRounding, 0f, 20f, "%.0f");
