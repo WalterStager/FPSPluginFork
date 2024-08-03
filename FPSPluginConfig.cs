@@ -103,26 +103,22 @@ namespace FPSPluginFork {
             if (!UseDtr && ImGui.TreeNode("Style Options###fpsPluginStyleOptions")) {
                 changed |= ImGui.SliderFloat("Background Opacity##fpsPluginOpacitySetting", ref Alpha, 0, 1);
 
-                if (ImGui.BeginCombo("Font##fpsPluginFontSelect", this.Font.Description())) {
-                    foreach (var v in (FPSPluginFont[]) Enum.GetValues(typeof(FPSPluginFont))) {
-                        if (ImGui.Selectable($"{v.Description()}##fpsPluginFont_{v}")) {
-                            this.Font = v;
-                            changed = true;
-                            FontChangeTime = DateTime.Now.Ticks;
-                        }
-                    }
-                    ImGui.EndCombo();
-                }
+                // if (ImGui.BeginCombo("Font##fpsPluginFontSelect", this.Font.Description())) {
+                //     foreach (var v in (FPSPluginFont[]) Enum.GetValues(typeof(FPSPluginFont))) {
+                //         if (ImGui.Selectable($"{v.Description()}##fpsPluginFont_{v}")) {
+                //             this.Font = v;
+                //             changed = true;
+                //             FontChangeTime = DateTime.Now.Ticks;
+                //         }
+                //     }
+                //     ImGui.EndCombo();
+                // }
                 
                  
                 if (ImGui.SliderFloat("Font Size##fpsPluginFontSizeSetting", ref FontSize, 6, 90, "%.0f")) {
                     FontChangeTime = DateTime.Now.Ticks;
                     changed = true;
                 }
-                // ImGui.SameLine();
-                // if (ImGui.SmallButton("Reload Font")) {
-                //     plugin.ReloadFont();
-                // }
                 changed |= ImGui.ColorEdit4("Text Colour##fpsPluginColorSetting", ref Colour);
 
                 changed |= ImGui.SliderFloat("Corner Rounding###fpsPluginCornerRounding", ref WindowCornerRounding, 0f, 20f, "%.0f");

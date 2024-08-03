@@ -10,6 +10,7 @@ using System.Reflection;
 using Dalamud.Game.Gui.Dtr;
 using Dalamud.IoC;
 using Dalamud.Plugin.Services;
+using Dalamud.Interface.ManagedFontAtlas;
 
 namespace FPSPluginFork {
     public class FPSPluginFork : IDalamudPlugin {
@@ -24,9 +25,7 @@ namespace FPSPluginFork {
         private Vector2 windowSize = Vector2.One;
         private DtrBarEntry dtrEntry;
 
-        private bool fontBuilt;
-        private bool fontLoadFailed;
-        private ImFontPtr font;
+        private IFontHandle font;
         private float maxSeenFps;
 
         [PluginService] public static  ICommandManager CommandManager { get; private set; } = null!;
@@ -37,10 +36,8 @@ namespace FPSPluginFork {
 
         public void Dispose() {
             PluginInterface.UiBuilder.Draw -= this.BuildUI;
-            // PluginInterface.UiBuilder.BuildFonts -= this.BuildFont;
             PluginInterface.UiBuilder.OpenConfigUi -= this.OpenConfigUi;
             Framework.Update -= this.OnFrameworkUpdate;
-            // PluginInterface.UiBuilder.RebuildFonts();
             fpsHistoryInterval?.Stop();
             dtrEntry?.Dispose();
             RemoveCommands();
@@ -58,7 +55,6 @@ namespace FPSPluginFork {
             PluginInterface.UiBuilder.Draw += this.BuildUI;
             PluginInterface.UiBuilder.OpenConfigUi += this.OpenConfigUi;
             Framework.Update += OnFrameworkUpdate;
-            // PluginInterface.UiBuilder.BuildFonts += this.BuildFont;
 
             BuildFont();
         }
@@ -72,7 +68,7 @@ namespace FPSPluginFork {
         private unsafe void OnFrameworkUpdate(IFramework dFramework) {
             var framework = FFXIVClientStructs.FFXIV.Client.System.Framework.Framework.Instance();
             try {
-                if (!(fontBuilt || fontLoadFailed)) return;
+                if (!font.Available) return;
                 if (PluginConfig.UseDtr && fpsText != null) {
                     DtrBarEntry retrievedEntry = DtrBar.Get("FPS Display") as DtrBarEntry;
                     if (retrievedEntry != null) {
@@ -187,44 +183,26 @@ namespace FPSPluginFork {
         }
         
         private void BuildFont() {
-            var fontFile = GetFontPath(PluginConfig.Font);
-            fontBuilt = false;
-            if (File.Exists(fontFile)) {
-                try {
-                    font = ImGui.GetIO().Fonts.AddFontFromFileTTF(fontFile, PluginConfig.FontSize);
-                    fontBuilt = true;
-                } catch (Exception ex) {
-                    PluginLog.Error($"Font failed to load. {fontFile}");
-                    PluginLog.Error(ex.ToString());
-                    fontLoadFailed = true;
+            this.font = PluginInterface.UiBuilder.FontAtlas.NewDelegateFontHandle(e =>
+                e.OnPreBuild(tk => {
+                    var config = new SafeFontConfig { SizePx = PluginConfig.FontSize };
+                    var fontFile = GetFontPath(PluginConfig.Font);
+                    if (File.Exists(fontFile)) {
+                        config.MergeFont = tk.AddFontFromFile(fontFile, config);
+                        tk.AddGameSymbol(config);
+                        tk.AttachExtraGlyphsForDalamudLanguage(config);
+                        }
+                    else {
+                        PluginLog.Error($"Font failed to load. {fontFile} does not exist.");
+                    }
                 }
-            } else {
-                PluginLog.Warning($"Font doesn't exist. {fontFile}");
-                fontLoadFailed = true;
-            }
-        }
+            ));
 
-        // internal void ReloadFont() {
-        //     PluginInterface.UiBuilder.RebuildFonts();
-        // }
+            
+        }
         
         private void BuildUI() {
-
-            // if (!fontBuilt && !fontLoadFailed) {
-            //     PluginInterface.UiBuilder.RebuildFonts();
-            //     return;
-            // }
-
             drawConfigWindow = drawConfigWindow && PluginConfig.DrawConfigUI();
-
-            // if (PluginConfig.FontChangeTime > 0) {
-            //     if (DateTime.Now.Ticks - 10000000 > PluginConfig.FontChangeTime) {
-            //         PluginConfig.FontChangeTime = 0;
-            //         fontLoadFailed = false;
-            //         windowSize = Vector2.Zero;
-            //         // ReloadFont();
-            //     }
-            // }
 
             if (!PluginConfig.Enable || PluginConfig.UseDtr || string.IsNullOrEmpty(fpsText)) return;
 
@@ -246,7 +224,7 @@ namespace FPSPluginFork {
                 flags |= ImGuiWindowFlags.NoMouseInputs | ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoBringToFrontOnFocus;
             }
 
-            if (fontBuilt) ImGui.PushFont(font);
+            if (font.Available) font.Push();
             if (windowSize == Vector2.Zero) {
                 windowSize = ImGui.CalcTextSize(fpsText) + (ImGui.GetStyle().WindowPadding * 2);
             }
@@ -256,7 +234,7 @@ namespace FPSPluginFork {
             ImGui.TextColored(PluginConfig.Colour, fpsText);
             ImGui.End();
             ImGui.PopStyleVar(stylePopCount);
-            if (fontBuilt) ImGui.PopFont();
+            if (font.Available) font.Pop();
         }
     }
 }
