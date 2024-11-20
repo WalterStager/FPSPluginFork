@@ -109,11 +109,8 @@ namespace FPSPluginFork {
                             fpsText += $"{FormatFpsValue(fpsHistory.Min())}";
                         }
                     }
-#if DEBUG
-                    if (!string.IsNullOrEmpty(PluginConfig.TestText)) {
-                        fpsText = PluginConfig.TestText;
-                    }
-#endif
+
+                    windowSize = Vector2.Zero;
                 }
 
             } catch (Exception ex) {
@@ -172,9 +169,10 @@ namespace FPSPluginFork {
         }
 
         private string GetFontPath(FPSPluginFont font) {
+            PluginLog.Verbose(PluginInterface.AssemblyLocation.FullName);
             return font switch {
                 FPSPluginFont.DalamudDefault => Path.Combine(PluginInterface.DalamudAssetDirectory.FullName, "UIRes", "NotoSansCJKjp-Medium.otf"),
-                _ => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? "", "font.ttf"),
+                _ => Path.Combine(Path.GetDirectoryName(PluginInterface.AssemblyLocation.FullName) ?? "", "font.ttf"),
             };
         }
         

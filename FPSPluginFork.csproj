@@ -43,6 +43,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <None Update="font.ttf">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
         <None Update="images\**">
           <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         </None>
