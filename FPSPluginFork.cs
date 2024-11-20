@@ -15,7 +15,7 @@ using Dalamud.Interface.ManagedFontAtlas;
 namespace FPSPluginFork {
     public class FPSPluginFork : IDalamudPlugin {
         public string Name => "FPS Plugin";
-        public FPSPluginConfig PluginConfig { get; private set; }
+        public FPSPluginConfig PluginConfig { get; }
 
         private bool drawConfigWindow;
         
@@ -23,10 +23,10 @@ namespace FPSPluginFork {
         private Stopwatch fpsHistoryInterval;
         private string fpsText;
         private Vector2 windowSize = Vector2.One;
-        private DtrBarEntry dtrEntry;
+        private IDtrBarEntry dtrEntry;
+        private float maxSeenFps;
 
         private IFontHandle font;
-        private float maxSeenFps;
 
         [PluginService] public static  ICommandManager CommandManager { get; private set; } = null!;
         [PluginService] public static  IFramework Framework { get; private set; } = null!;
@@ -39,7 +39,7 @@ namespace FPSPluginFork {
             PluginInterface.UiBuilder.OpenConfigUi -= this.OpenConfigUi;
             Framework.Update -= this.OnFrameworkUpdate;
             fpsHistoryInterval?.Stop();
-            dtrEntry?.Dispose();
+            dtrEntry?.Remove();
             RemoveCommands();
         }
 
@@ -70,10 +70,7 @@ namespace FPSPluginFork {
             try {
                 if (!font.Available) return;
                 if (PluginConfig.UseDtr && fpsText != null) {
-                    DtrBarEntry retrievedEntry = DtrBar.Get("FPS Display") as DtrBarEntry;
-                    if (retrievedEntry != null) {
-                        dtrEntry = retrievedEntry;
-                    }
+                    dtrEntry ??= DtrBar.Get("FPS Display");
                     dtrEntry.Shown = PluginConfig.Enable;
                     dtrEntry.Text = fpsText;
                     dtrEntry.OnClick = PluginConfig.DtrOpenSettings ? OpenConfigUi : null;
@@ -93,7 +90,7 @@ namespace FPSPluginFork {
                     if (!PluginConfig.NoLabels && !PluginConfig.AlternativeFPSLabel) fpsText += "FPS:";
                     fpsText += $"{FormatFpsValue(fps)}";
                     if (!PluginConfig.NoLabels && PluginConfig.AlternativeFPSLabel) fpsText += "fps";
-                    if (PluginConfig.ShowAverage || PluginConfig.ShowMinimum || (PluginConfig.UseDtr && PluginConfig.DtrTooltip)) {
+                    if (PluginConfig.ShowAverage || PluginConfig.ShowMinimum || PluginConfig.DtrTooltip) {
                         if (!windowInactive) fpsHistory.Add(fps);
 
                         if (fpsHistory.Count > PluginConfig.HistorySnapshotCount) {
@@ -101,13 +98,13 @@ namespace FPSPluginFork {
                         }
 
                         if (PluginConfig.ShowAverage && fpsHistory.Count > 0) {
-                            fpsText += PluginConfig.MultiLine && !PluginConfig.UseDtr ? "\n" : " / ";
+                            fpsText +=  " / ";
                             if (!PluginConfig.NoLabels) fpsText += "Avg:";
                             fpsText += $"{FormatFpsValue(fpsHistory.Average())}";
                         }
 
                         if (PluginConfig.ShowMinimum && fpsHistory.Count > 0) {
-                            fpsText += PluginConfig.MultiLine && !PluginConfig.UseDtr ? "\n" : " / ";
+                            fpsText += " / ";
                             if (!PluginConfig.NoLabels) fpsText += "Min:";
                             fpsText += $"{FormatFpsValue(fpsHistory.Min())}";
                         }
@@ -117,7 +114,6 @@ namespace FPSPluginFork {
                         fpsText = PluginConfig.TestText;
                     }
 #endif
-                    windowSize = Vector2.Zero;
                 }
 
             } catch (Exception ex) {
